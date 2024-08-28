@@ -1,0 +1,28 @@
+version: '3.4'
+services:
+    sqlserver:
+        hostname: sqlserver
+        image: mcr.microsoft.com/mssql/server:latest
+        volumes:
+        - ./setupdb.sql:/src/sql/init.sql
+        environment:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: yourStrong(!)Password
+          MSSQL_PID: Express
+        ports:
+        - 1435:1433
+        restart: always
+        command:
+        - /bin/bash
+        - -c 
+        - |
+          # Launch MSSQL and send to background
+          /opt/mssql/bin/sqlservr &
+          # wait for SQL Server to come up
+          echo importing data will start in 30s...
+          sleep 30s
+                 
+          # run the init script to create the DB, users, tables and stored procedures
+          echo init database...
+          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P $$SA_PASSWORD -i /src/sql/init.sql
+          sleep infinity

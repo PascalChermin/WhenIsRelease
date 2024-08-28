@@ -1,0 +1,113 @@
+<h1>When Is Release Date</h1>
+<div>
+  <mat-form-field class="example-form-field">
+    <input matInput class="input-text" type="text" id="input_Search" minLength="3" [(ngModel)]="searchQuery" (keyup.enter)="Search()" />
+    <mat-placeholder class="placeholder">Search for game releases...</mat-placeholder>
+    <button mat-button *ngIf="searchQuery" matSuffix mat-icon-button aria-label="Clear" (click)="searchQuery=''">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+  <button mat-raised-button color="primary" class="input-button" (click)="Search()" [disabled]="searchQuery.length < 3">Search</button>
+</div>
+<div>
+  <details class="details">
+    <summary>Advanced Search</summary>
+    <mat-tab-group>
+      <mat-tab label="Filter by Region">
+        <div class="filters region-filters">
+          <mat-selection-list class="list-group-horizontal" #searchRegionList="ngModel" [(ngModel)]="searchRegions">
+            <mat-progress-spinner *ngIf="!regions" class="loading-animation" color="primary" mode="indeterminate" diameter="40"></mat-progress-spinner>
+            <mat-list-option class="list-group-item" *ngFor="let r of regions" [value]="r">
+              {{ r.name }}
+            </mat-list-option>
+          </mat-selection-list>
+        </div>
+      </mat-tab>
+      <mat-tab label="Filter by Platform">
+        <div class="filters platform-filters">
+          <mat-selection-list class="list-group-horizontal" #searchPlatformList="ngModel" [(ngModel)]="searchPlatforms">
+            <button mat-raised-button class="mat-primary fill text-sm" (click)="selectAll(searchPlatformList, allplatforms)">Select All</button>
+            <button mat-raised-button class="mat-accent fill text-sm" (click)="deselectAll(searchPlatformList)">Deselect All</button>
+            <mat-progress-spinner *ngIf="!allplatforms" class="loading-animation" color="primary" mode="indeterminate" diameter="40"></mat-progress-spinner>
+            <mat-list-option class="list-group-item" *ngFor="let p of allplatforms" [value]="p">
+              {{ p.name }}
+            </mat-list-option>
+          </mat-selection-list>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </details>
+</div>
+
+<mat-vertical-stepper>
+  <mat-step label="Select Region(s)" state="globe">
+    <p class="stepper-paragraph">No selection will include all regions</p>
+    <mat-progress-spinner *ngIf="!regions" class="loading-animation" color="primary" mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <div class="filters region-filters">
+      <mat-selection-list class="list-group-horizontal" #calendarRegionList="ngModel" [(ngModel)]="calendarRegions">
+        <mat-list-option class="list-group-item" *ngFor="let r of regions" [value]="r">
+          {{ r.name }}
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+    <div>
+      <button mat-raised-button color="primary" matStepperNext>Next</button>
+    </div>
+  </mat-step>
+  <mat-step label="Select Platform(s)" state="platforms">
+    <p class="stepper-paragraph">No selection will include all platforms</p>
+    <mat-progress-spinner *ngIf="!platforms" class="loading-animation" color="primary" mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <div class="filters platform-filters">
+      <mat-selection-list class="list-group-horizontal" #calendarPlatformList="ngModel" [(ngModel)]="calendarPlatforms">
+        <button mat-raised-button class="mat-primary fill text-sm" (click)="selectAll(calendarPlatformList, platforms)">Select All</button>
+        <button mat-raised-button class="mat-accent fill text-sm" (click)="deselectAll(calendarPlatformList)">Deselect All</button>
+        <mat-list-option class="list-group-item" *ngFor="let p of platforms" [value]="p">
+          {{ p.name }}
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+    <div>
+      <button mat-raised-button color="primary" matStepperPrevious>Back</button>
+      <button mat-raised-button color="primary" matStepperNext (click)="GenerateCalendarLink()">Next</button>
+    </div>
+  </mat-step>
+  <mat-step label="Get iCal Link" state="cal">
+    <p class="stepper-paragraph">Subscribe using the following link:</p>
+    <input type="text" class="stepper-input" ngDefaultControl [(ngModel)]="calendarUrl" value="calendarUrl" disabled />
+    <button mat-raised-button color="primary" class="input-button" [copy-clipboard]="calendarUrl" (copied)="notify()">Copy to clipboard</button>
+  </mat-step>
+
+  <ng-template matStepperIcon="globe">
+    <mat-icon>public</mat-icon>
+  </ng-template>
+  <ng-template matStepperIcon="platforms">
+    <mat-icon>gamepad</mat-icon>
+  </ng-template>
+  <ng-template matStepperIcon="cal">
+    <mat-icon>calendar_today</mat-icon>
+  </ng-template>
+</mat-vertical-stepper>
+
+<div class="results" *ngIf="releases || loadingReleases" [@slideInOut]>
+  <h1>Top 50 Search results</h1>
+  <button mat-mini-fab class="close-button" color="primary" (click)="releases=undefined">X</button>
+  <p *ngIf="!releases || loadingReleases">
+    <mat-progress-spinner class="loading-animation" color="primary" mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </p>
+  <div class="result-list">
+    <mat-card *ngFor="let r of releases">
+      <mat-card-header>
+        <div mat-card-avatar class="platform-image">
+          <img *ngIf="r.platform" src="{{ r.platform.image | imageFormat: 'mini' }}" title="{{ r.platform.name }}" alt="{{ r.platform.name }}" />
+        </div>
+        <mat-card-title>{{ r.name }}<span *ngIf="r.region"> [{{ r.region.name }}]</span></mat-card-title>
+        <mat-card-subtitle>Release Date: {{ r.releaseDate | date }} <i>Last Update: {{ r.lastUpdate | date }}</i></mat-card-subtitle>
+      </mat-card-header>
+      <img mat-card-image class="release-image" src="{{ r.image | imageFormat: 'scaleSm' }}" alt="{{ r.name }}" />
+    </mat-card>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <p class="disclaimer-paragraph">All data originates from <a href="https://www.giantbomb.com" target="_blank">Giant Bomb</a>. Any incorrect information should be updated there. Local data is updated each day so please wait 24h for changes to be in effect. This application only looks at <i>releases</i> of a game and not the general release date of a game to support filtering on regions. Any questions? Feel free to contact me on <a href="https://twitter.com/WhenIsRelease" target="_blank">Twitter</a></p>
+</div>
