@@ -8,7 +8,7 @@ It was a website which listed release dates of videogames by platform and region
 ![The last tweet to go out](https://github.com/user-attachments/assets/b59c727d-fbc4-4cb8-b354-a931c01c9c76)
 
 ## Stack
-The backend was a .NET application which polled a GiantBomb API periodically for new and updated data. It would also tweet out all games which would be released daily, split into a maximum of 4 at a time, due to the image limitations of Twitter.  
+The backend was a .NET Core application which polled a GiantBomb API periodically for new and updated data. It would also tweet out all games which would be released daily, split into a maximum of 4 at a time, due to the image limitations of Twitter.  
   
 The frontend was very basic Angular, you either search a game, or you filtered out your region and preferred platforms to get an iCal link. At first I wanted to include all titles which ever came out (so you could search in your own calendar app when a game was released), but this resulted in files that were too big for most calendar apps to process and sync. So I reduced it to only include upcoming releases which worked just fine.  
 
